@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HabitQuest — Gamified Habit Tracker</title>
+  <meta name="description" content="Track your daily habits, earn XP, level up, and visualize your progress with beautiful analytics." />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Tailwind Config -->
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            orbitron: ['Orbitron', 'sans-serif'],
+            rajdhani: ['Rajdhani', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            neon: {
+              cyan:   '#00f5ff',
+              purple: '#bf00ff',
+              green:  '#00ff88',
+              yellow: '#ffe500',
+              pink:   '#ff006e',
+            },
+            dark: {
+              900: '#030712',
+              800: '#0a0f1e',
+              700: '#0f172a',
+              600: '#1e293b',
+              500: '#334155',
+            }
+          },
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="bg-dark-900 text-white font-rajdhani min-h-screen overflow-x-hidden">
+
+  <!-- ─── BACKGROUND GRID & GLOW ─── -->
+  <div class="fixed inset-0 pointer-events-none z-0">
+    <div class="grid-bg absolute inset-0"></div>
+    <div class="glow-orb-1 absolute top-[-200px] left-[-200px] w-[600px] h-[600px] rounded-full opacity-20"></div>
+    <div class="glow-orb-2 absolute bottom-[-200px] right-[-200px] w-[600px] h-[600px] rounded-full opacity-15"></div>
+  </div>
+
+  <!-- ─── HEADER ─── -->
+  <header class="relative z-10 border-b border-neon-cyan/10 bg-dark-900/80 backdrop-blur-xl sticky top-0">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      <!-- Logo -->
+      <div class="flex items-center gap-3">
+        <div class="logo-icon w-10 h-10 rounded-lg flex items-center justify-center text-xl font-black">⚡</div>
+        <div>
+          <h1 class="font-orbitron text-xl sm:text-2xl font-black tracking-wider text-white">
+            HABIT<span class="text-neon-cyan">QUEST</span>
+          </h1>
+          <p class="text-xs text-gray-500 font-mono tracking-widest uppercase">Level Up Your Life</p>
+        </div>
+      </div>
+
+      <!-- XP / Level Bar -->
+      <div class="w-full sm:w-auto flex flex-col items-start sm:items-end gap-1">
+        <div class="flex items-center gap-3">
+          <span class="font-mono text-neon-yellow text-sm font-bold" id="level-badge">LVL <span id="level-num">1</span></span>
+          <span class="text-gray-400 text-xs font-mono" id="xp-label">0 / 100 XP</span>
+          <span class="text-neon-green text-xs font-mono" id="streak-label">🔥 0 day streak</span>
+        </div>
+        <div class="w-full sm:w-64 h-3 bg-dark-600 rounded-full overflow-hidden border border-white/5">
+          <div id="xp-bar" class="xp-bar-fill h-full rounded-full transition-all duration-700" style="width: 0%"></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ─── MAIN LAYOUT ─── -->
+  <main class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+
+    <!-- ══════════════════════════════════
+         TAB NAVIGATION
+    ══════════════════════════════════ -->
+    <nav class="flex gap-1 p-1 bg-dark-800/60 backdrop-blur border border-white/5 rounded-xl w-fit">
+      <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn active-tab px-5 py-2 rounded-lg font-orbitron text-xs tracking-wider font-bold transition-all duration-200">
+        📋 DASHBOARD
+      </button>
+      <button onclick="switchTab('gameboard')" id="tab-gameboard" class="tab-btn px-5 py-2 rounded-lg font-orbitron text-xs tracking-wider font-bold transition-all duration-200">
+        🎮 GAME BOARD
+      </button>
+      <button onclick="switchTab('analytics')" id="tab-analytics" class="tab-btn px-5 py-2 rounded-lg font-orbitron text-xs tracking-wider font-bold transition-all duration-200">
+        📊 ANALYTICS
+      </button>
+    </nav>
+
+    <!-- ══════════════════════════════════
+         DASHBOARD TAB
+    ══════════════════════════════════ -->
+    <section id="tab-content-dashboard" class="tab-content space-y-6">
+
+      <!-- Stat Cards Row -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="stat-card p-4 rounded-xl border border-neon-cyan/20 bg-dark-800/50 backdrop-blur">
+          <div class="text-neon-cyan text-xs font-mono uppercase tracking-widest mb-1">Total Habits</div>
+          <div class="font-orbitron text-3xl font-black" id="stat-total">0</div>
+        </div>
+        <div class="stat-card p-4 rounded-xl border border-neon-green/20 bg-dark-800/50 backdrop-blur">
+          <div class="text-neon-green text-xs font-mono uppercase tracking-widest mb-1">Done Today</div>
+          <div class="font-orbitron text-3xl font-black" id="stat-done">0</div>
+        </div>
+        <div class="stat-card p-4 rounded-xl border border-neon-yellow/20 bg-dark-800/50 backdrop-blur">
+          <div class="text-neon-yellow text-xs font-mono uppercase tracking-widest mb-1">Best Streak</div>
+          <div class="font-orbitron text-3xl font-black" id="stat-streak">0</div>
+        </div>
+        <div class="stat-card p-4 rounded-xl border border-neon-purple/20 bg-dark-800/50 backdrop-blur">
+          <div class="text-neon-purple text-xs font-mono uppercase tracking-widest mb-1">Total XP</div>
+          <div class="font-orbitron text-3xl font-black" id="stat-xp">0</div>
+        </div>
+      </div>
+
+      <!-- Add Habit Form -->
+      <div class="panel p-6 rounded-2xl border border-white/8 bg-dark-800/50 backdrop-blur">
+        <h2 class="font-orbitron text-sm tracking-widest text-neon-cyan mb-5 flex items-center gap-2">
+          <span class="w-5 h-5 rounded bg-neon-cyan/20 flex items-center justify-center text-xs">+</span>
+          ADD NEW HABIT
+        </h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <input id="habit-name" type="text" placeholder="Habit name..."
+            class="input-field col-span-1 sm:col-span-2 lg:col-span-1 px-4 py-3 rounded-xl bg-dark-700 border border-white/10 text-white placeholder-gray-500 font-rajdhani text-base focus:outline-none focus:border-neon-cyan/60 transition-all" />
+
+          <select id="habit-category"
+            class="input-field px-4 py-3 rounded-xl bg-dark-700 border border-white/10 text-white font-rajdhani text-base focus:outline-none focus:border-neon-cyan/60 transition-all">
+            <option value="health">💪 Health</option>
+            <option value="mind">🧠 Mind</option>
+            <option value="skills">⚡ Skills</option>
+            <option value="social">🤝 Social</option>
+            <option value="finance">💰 Finance</option>
+            <option value="custom">✨ Custom</option>
+          </select>
+
+          <select id="habit-xp"
+            class="input-field px-4 py-3 rounded-xl bg-dark-700 border border-white/10 text-white font-rajdhani text-base focus:outline-none focus:border-neon-cyan/60 transition-all">
+            <option value="5">5 XP — Easy</option>
+            <option value="10" selected>10 XP — Normal</option>
+            <option value="20">20 XP — Hard</option>
+            <option value="30">30 XP — Epic</option>
+          </select>
+
+          <button onclick="addHabit()"
+            class="btn-primary px-6 py-3 rounded-xl font-orbitron text-xs font-bold tracking-widest uppercase transition-all duration-200 active:scale-95">
+            + ADD HABIT
+          </button>
+        </div>
+        <!-- Mood Logger -->
+        <div class="mt-5 pt-5 border-t border-white/5">
+          <div class="flex flex-wrap items-center gap-4">
+            <span class="text-gray-400 text-sm font-mono">Today's mood:</span>
+            <div class="flex gap-2" id="mood-buttons">
+              <button onclick="setMood(1)" class="mood-btn text-2xl hover:scale-125 transition-transform" title="Terrible">😫</button>
+              <button onclick="setMood(2)" class="mood-btn text-2xl hover:scale-125 transition-transform" title="Bad">😕</button>
+              <button onclick="setMood(3)" class="mood-btn text-2xl hover:scale-125 transition-transform" title="Okay">😐</button>
+              <button onclick="setMood(4)" class="mood-btn text-2xl hover:scale-125 transition-transform" title="Good">😊</button>
+              <button onclick="setMood(5)" class="mood-btn text-2xl hover:scale-125 transition-transform" title="Amazing">🤩</button>
+            </div>
+            <span id="mood-status" class="text-gray-500 text-sm font-mono">Not logged yet</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Habit List -->
+      <div class="panel p-6 rounded-2xl border border-white/8 bg-dark-800/50 backdrop-blur">
+        <div class="flex items-center justify-between mb-5">
+          <h2 class="font-orbitron text-sm tracking-widest text-neon-cyan flex items-center gap-2">
+            <span class="w-5 h-5 rounded bg-neon-cyan/20 flex items-center justify-center text-xs">☑</span>
+            MY HABITS
+          </h2>
+          <button onclick="clearAllHabits()" class="text-xs text-red-400/60 hover:text-red-400 font-mono transition-colors">
+            Clear All
+          </button>
+        </div>
+        <div id="habit-list" class="space-y-3">
+          <!-- Habits rendered by JS -->
+          <div class="empty-state text-center py-12 text-gray-600" id="empty-state">
+            <div class="text-5xl mb-3">🎯</div>
+            <div class="font-orbitron text-sm tracking-widest">NO HABITS YET</div>
+            <div class="text-xs font-mono mt-1">Add your first habit above to begin your quest</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════
+         GAME BOARD TAB
+    ══════════════════════════════════ -->
+    <section id="tab-content-gameboard" class="tab-content hidden space-y-6">
+
+      <!-- Achievement Banner -->
+      <div id="achievement-banner" class="hidden achievement-pop p-4 rounded-xl border border-neon-yellow/40 bg-neon-yellow/5 text-center">
+        <div class="font-orbitron text-neon-yellow text-sm tracking-widest" id="achievement-text">🏆 ACHIEVEMENT UNLOCKED!</div>
+      </div>
+
+      <!-- Today's Check-In Grid -->
+      <div class="panel p-6 rounded-2xl border border-white/8 bg-dark-800/50 backdrop-blur">
+        <h2 class="font-orbitron text-sm tracking-widest text-neon-purple mb-2 flex items-center gap-2">
+          <span>🎮</span> TODAY'S QUEST BOARD
+        </h2>
+        <p class="text-gray-500 text-sm font-mono mb-6" id="todays-date-label">Loading date...</p>
+
+        <div id="gameboard-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Quest cards rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Weekly Heatmap -->
+      <div class="panel p-6 rounded-2xl border border-white/8 bg-dark-800/50 backdrop-blur">
+        <h2 class="font-orbitron text-sm tracking-widest text-neon-green mb-5 flex items-center gap-2">
+          <span>📅</span> LAST 30 DAYS — COMPLETION HEATMAP
+        </h2>
+        <div id="heatmap-container" class="overflow-x-auto">
+          <div id="heatmap-grid" class="flex gap-1 flex-wrap"></div>
+        </div>
+        <div class="flex items-center gap-2 mt-4 text-xs font-mono text-gray-500">
+          <span>Less</span>
+          <div class="w-3 h-3 rounded-sm bg-dark-600"></div>
+          <div class="w-3 h-3 rounded-sm bg-neon-green/20"></div>
+          <div class="w-3 h-3 rounded-sm bg-neon-green/50"></div>
+          <div class="w-3 h-3 rounded-sm bg-neon-green/80"></div>
+          <div class="w-3 h-3 rounded-sm bg-neon-green"></div>
+          <span>More</span>
+        </div>
+      </div>
+
+      <!-- Achievements Gallery -->
+      <div class="panel p-6 rounded-2xl border border-white/8 bg-dark-800/50 backdrop-blur">
+        <h2 class="font-orbitron text-sm tracking-widest text-neon-yellow mb-5 flex items-center gap-2">
+          <span>🏆</span> ACHIEVEMENTS
+        </h2>
+        <div id="achievements-gallery" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════
+         ANALYTICS TAB
+    ══════════════════════════════════ -->
+    <section id="tab-content-analytics" class="tab-content hidden space-y-6">
+
+      <!-- Chart Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Mood vs Productivity -->
+        <div class="panel p-6 rounded-2xl border border-white/8 bg-dark-800/50 backdrop-blur">
+          <h2 class="font-orbitron text-xs tracking-widest text-neon-pink mb-5 flex items-center gap-2">
+            <span>😊</span> MOOD vs PRODUCTIVITY
+          </h2>
+          <div class="chart-container">
+            <canvas id="mood-chart"></canvas>
+          </div>
+        </div>
+
+        <!-- Weekly Progress -->
+        <div class="panel p-6 rounded-2xl border border-white/8 bg-dark-800/50 backdrop-blur">
+          <h2 class="font-orbitron text-xs tracking-widest text-neon-cyan mb-5 flex items-center gap-2">
+            <span>📈</span> WEEKLY PROGRESS
+          </h2>
+          <div class="chart-container">
+            <canvas id="weekly-chart"></canvas>
+          </div>
+        </div>
+
+        <!-- XP Over Time -->
+        <div class="panel p-6 rounded-2xl border border-white/8 bg-dark-800/50 backdrop-blur">
+          <h2 class="font-orbitron text-xs tracking-widest text-neon-yellow mb-5 flex items-center gap-2">
+            <span>⚡</span> XP EARNED OVER TIME
+          </h2>
+          <div class="chart-container">
+            <canvas id="xp-chart"></canvas>
+          </div>
+        </div>
+
+        <!-- Category Breakdown -->
+        <div class="panel p-6 rounded-2xl border border-white/8 bg-dark-800/50 backdrop-blur">
+          <h2 class="font-orbitron text-xs tracking-widest text-neon-purple mb-5 flex items-center gap-2">
+            <span>🧩</span> HABIT CATEGORY BREAKDOWN
+          </h2>
+          <div class="chart-container">
+            <canvas id="category-chart"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Data Export -->
+      <div class="panel p-6 rounded-2xl border border-white/8 bg-dark-800/50 backdrop-blur">
+        <h2 class="font-orbitron text-xs tracking-widest text-gray-400 mb-4 flex items-center gap-2">
+          <span>💾</span> DATA MANAGEMENT
+        </h2>
+        <div class="flex flex-wrap gap-3">
+          <button onclick="exportData()" class="btn-secondary px-5 py-2.5 rounded-xl font-orbitron text-xs font-bold tracking-widest uppercase transition-all duration-200 active:scale-95">
+            📥 EXPORT JSON
+          </button>
+          <label class="btn-secondary px-5 py-2.5 rounded-xl font-orbitron text-xs font-bold tracking-widest uppercase transition-all duration-200 active:scale-95 cursor-pointer">
+            📤 IMPORT JSON
+            <input type="file" accept=".json" onchange="importData(event)" class="hidden" />
+          </label>
+          <button onclick="resetAllData()" class="btn-danger px-5 py-2.5 rounded-xl font-orbitron text-xs font-bold tracking-widest uppercase transition-all duration-200 active:scale-95">
+            ⚠ RESET ALL DATA
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ─── TOAST NOTIFICATION ─── -->
+  <div id="toast" class="fixed bottom-16 right-4 z-50 hidden">
+    <div class="toast-inner px-5 py-3 rounded-xl border font-mono text-sm font-bold tracking-wide shadow-2xl max-w-xs">
+      <span id="toast-msg"></span>
+    </div>
+  </div>
+
+  <!-- ─── XP FLOATING TEXT ─── -->
+  <div id="xp-popup" class="fixed pointer-events-none z-50 hidden font-orbitron font-black text-neon-green text-2xl xp-float"></div>
+
+  <!-- ─── FOOTER (Sami Bajwa) ─── -->
+  <footer id="sami-footer" class="fixed bottom-0 left-0 right-0 z-50 flex justify-center items-center py-1.5 bg-dark-900/95 backdrop-blur border-t border-white/5 cursor-pointer" onclick="toggleFooterPopup()">
+    <span class="text-gray-500 text-xs font-mono hover:text-gray-300 transition-colors">By Sami Bajwa</span>
+  </footer>
+
+  <!-- Footer Popup -->
+  <div id="footer-popup" class="hidden fixed bottom-10 left-1/2 -translate-x-1/2 z-50 bg-dark-700 border border-white/10 rounded-xl p-4 shadow-2xl flex gap-3 backdrop-blur-xl">
+    <a href="https://whatsapp.com/channel/0029VbCNzQeISTkQR04DvX3r" target="_blank"
+       class="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-500/10 border border-green-500/30 text-green-400 text-sm font-bold hover:bg-green-500/20 transition-all">
+      💬 WhatsApp
+    </a>
+    <a href="https://www.facebook.com/samibajwaisking" target="_blank"
+       class="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-400 text-sm font-bold hover:bg-blue-500/20 transition-all">
+      📘 Facebook
+    </a>
+  </div>
+
+  <!-- App JS -->
+  <script src="app.js"></script>
+</body>
+</html>

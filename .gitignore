@@ -1,0 +1,55 @@
+# ============================================================
+# HabitQuest — .gitignore
+# ============================================================
+
+# ── OS Files ──────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ── Editor / IDE ──────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ── Node (if contributors add a dev server) ───────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# ── Build / Dist ──────────────────────────────────────────
+dist/
+build/
+.cache/
+
+# ── Local env & secrets ───────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ── Backup exports from the app ───────────────────────────
+habitquest-backup-*.json
+
+# ── Logs ──────────────────────────────────────────────────
+*.log
+logs/
+
+# ── Temporary files ───────────────────────────────────────
+*.tmp
+*.temp
+.tmp/

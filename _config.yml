@@ -1,0 +1,43 @@
+# ============================================================
+# GitHub Pages Configuration — HabitQuest
+# This file tells GitHub Pages how to serve the site.
+# ============================================================
+
+# Site metadata (used by GitHub Pages SEO)
+title: HabitQuest — Gamified Habit Tracker
+description: >
+  Track your daily habits, earn XP, level up, and visualize your
+  progress with beautiful analytics. Zero backend, runs entirely
+  in your browser.
+author: Sami Bajwa
+url: "https://appsfordailyuse.github.io"
+baseurl: "/habitquest"
+
+# Use the minimal theme (our custom CSS overrides it fully)
+theme: minima
+
+# Exclude files from the Jekyll build output
+exclude:
+  - CHANGELOG.md
+  - CONTRIBUTING.md
+  - "*.zip"
+  - "*.sh"
+  - node_modules/
+  - .gitignore
+
+# Enable GitHub Pages plugins
+plugins:
+  - jekyll-seo-tag
+  - jekyll-sitemap
+
+# SEO / Social meta tags
+twitter:
+  username: samibajwaisking
+  card: summary_large_image
+
+social:
+  name: Sami Bajwa
+  links:
+    - https://www.facebook.com/samibajwaisking
+    - https://whatsapp.com/channel/0029VbCNzQeISTkQR04DvX3r
+    - https://samioutic.com
